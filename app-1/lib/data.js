@@ -6,6 +6,7 @@
 // Dependencies
 const fs = require('fs')
 const path = require('path')
+const helpers = require('./helpers')
 
 // Container for the module (to be exported)
 let lib = {}
@@ -51,7 +52,12 @@ lib.read = (dir, file, callback) => {
 		lib.baseDir + dir + '/' + file + '.json',
 		'utf8',
 		(err, data) => {
-			callback(err, data)
+			if (!err && data) {
+				const parsedData = helpers.parseJsonToObject(data)
+				callback(false, parsedData)
+			} else {
+				callback(err, data)
+			}
 		}
 	)
 }
@@ -87,22 +93,24 @@ lib.update = (dir, file, data, callback) => {
 					}
 				})
 			} else {
-				callback('Could not open the file for editing, file may not exist yet')
+				callback(
+					'Could not open the file for editing, file may not exist yet'
+				)
 			}
 		}
 	)
 }
 
 // * Delete an existing file
-lib.delete = (dir,file,callback) => {
-    // Unlink the file
-    fs.unlink(lib.baseDir+dir+'/'+file+'.json', (err) => {
-        if(!err){
-            callback(false)
-        } else{
-            callback("Error deleting file")
-        }
-    })
+lib.delete = (dir, file, callback) => {
+	// Unlink the file
+	fs.unlink(lib.baseDir + dir + '/' + file + '.json', err => {
+		if (!err) {
+			callback(false)
+		} else {
+			callback('Error deleting file')
+		}
+	})
 }
 
 // * Export the module
